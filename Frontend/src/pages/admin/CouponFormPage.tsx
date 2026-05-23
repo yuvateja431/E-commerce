@@ -6,7 +6,7 @@ import * as z from "zod";
 import { FiArrowLeft, FiSave } from "react-icons/fi";
 import api from "../../services/api";
 
-const schema = z.object({
+const baseSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   code: z.string().min(3, "Code must be at least 3 characters").toUpperCase(),
   description: z.string().optional(),
@@ -21,7 +21,9 @@ const schema = z.object({
   newCustomersOnly: z.boolean().default(false),
   freeShipping: z.boolean().default(false),
   status: z.enum(["ACTIVE", "INACTIVE", "EXPIRED"]).default("ACTIVE"),
-}).refine(data => new Date(data.expiryDate) > new Date(data.validFrom), {
+});
+
+const schema = baseSchema.refine(data => new Date(data.expiryDate) > new Date(data.validFrom), {
   message: "Expiry date must be after valid from date",
   path: ["expiryDate"]
 }).refine(data => {
@@ -32,7 +34,7 @@ const schema = z.object({
   path: ["discountValue"]
 });
 
-type FormData = z.infer<typeof schema>;
+type FormData = z.infer<typeof baseSchema>;
 
 export const CouponFormPage = () => {
   const { id } = useParams();
@@ -42,7 +44,7 @@ export const CouponFormPage = () => {
   const [saving, setSaving] = useState(false);
   
   const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: {
       discountType: "PERCENTAGE",
       status: "ACTIVE",

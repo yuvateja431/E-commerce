@@ -2,9 +2,10 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store";
 import type { Role } from "../types";
+import type { ReactNode } from "react";
 
 interface ProtectedRouteProps {
-  children: JSX.Element;
+  children: ReactNode;
   allowedRoles?: Role[];
 }
 

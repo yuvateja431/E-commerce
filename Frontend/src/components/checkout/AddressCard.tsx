@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircleIcon, PencilIcon, TrashIcon, StarIcon } from "@heroicons/react/24/outline";
+import { FiCheckCircle, FiEdit2, FiTrash2, FiStar } from "react-icons/fi";
 
 interface Address {
   id: string;
@@ -55,10 +55,10 @@ export default function AddressCard({
         </div>
         <div className="flex flex-col space-y-1">
           {address.isDefault && (
-            <StarIcon className="h-5 w-5 text-yellow-500" title="Default address" />
+            <FiStar className="h-5 w-5 text-yellow-500" title="Default address" />
           )}
           {selected && (
-            <CheckCircleIcon className="h-5 w-5 text-indigo-600" title="Selected" />
+            <FiCheckCircle className="h-5 w-5 text-indigo-600" title="Selected" />
           )}
         </div>
       </div>
@@ -71,7 +71,7 @@ export default function AddressCard({
             onEdit();
           }}
         >
-          <PencilIcon className="inline h-4 w-4 mr-1" /> Edit
+          <FiEdit2 className="inline h-4 w-4 mr-1" /> Edit
         </button>
         <button
           type="button"
@@ -81,7 +81,7 @@ export default function AddressCard({
             onDelete();
           }}
         >
-          <TrashIcon className="inline h-4 w-4 mr-1" /> Delete
+          <FiTrash2 className="inline h-4 w-4 mr-1" /> Delete
         </button>
         {!address.isDefault && (
           <button
@@ -92,7 +92,7 @@ export default function AddressCard({
               onSetDefault();
             }}
           >
-            <StarIcon className="inline h-4 w-4 mr-1" /> Set Default
+            <FiStar className="inline h-4 w-4 mr-1" /> Set Default
           </button>
         )}
       </div>

@@ -2,7 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setInstantOrder, reset } from "../store/slices/checkoutSlice";
-import { RootState } from "../store";
+import type { RootState } from "../store";
 import toast from "react-hot-toast";
 
 interface BuyNowButtonProps {

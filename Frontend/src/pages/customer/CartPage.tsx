@@ -31,7 +31,7 @@ export const CartPage = () => {
     (acc: number, item: any) => acc + ((item?.product?.price ?? 0) * (item?.quantity ?? 0)),
     0
   );
-  const shipping = subtotal > 100 ? 0 : 0;
+  const shipping: number = subtotal > 100 ? 0 : 0;
   const total = subtotal + shipping;
 
   const handleUpdateQuantity = (productId: string, quantity: number) => {

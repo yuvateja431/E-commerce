@@ -76,7 +76,7 @@ export const CheckoutPage = () => {
     return acc + (itemPrice * item.quantity);
   }, 0);
 
-  const shipping = 0;
+  const shipping: number = 0;
   const total = subtotal + shipping - discountAmount;
 
   if (instantOrder && !instantProduct && fetchingProduct) {
