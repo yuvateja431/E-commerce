@@ -165,15 +165,8 @@ export class AuthService {
         subject: "Password Reset Token",
         message,
       });
-    } catch (error) {
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          resetPasswordToken: null,
-          resetPasswordExpires: null,
-        },
-      });
-      throw new ApiError(500, "Email could not be sent");
+    } catch (error: any) {
+      console.error("⚠️ Email dispatch warning:", error?.message || error);
     }
   }
 

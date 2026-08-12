@@ -7,8 +7,25 @@ interface EmailOptions {
 }
 
 export const sendEmail = async (options: EmailOptions): Promise<void> => {
+  const isDummySmtp =
+    !process.env.SMTP_USER ||
+    process.env.SMTP_USER.includes("your-email") ||
+    !process.env.SMTP_PASS ||
+    process.env.SMTP_PASS.includes("your-new-gmail");
+
+  if (isDummySmtp) {
+    console.log("⚠️ SMTP credentials not configured. Logging email content to console:");
+    console.log("-----------------------------------------");
+    console.log(`To: ${options.email}`);
+    console.log(`Subject: ${options.subject}`);
+    console.log("Message:");
+    console.log(options.message);
+    console.log("-----------------------------------------");
+    return;
+  }
+
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
     port: parseInt(process.env.SMTP_PORT || "587"),
     auth: {
       user: process.env.SMTP_USER,
@@ -17,7 +34,7 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
   });
 
   const mailOptions = {
-    from: `${process.env.FROM_NAME} <${process.env.FROM_EMAIL}>`,
+    from: `${process.env.FROM_NAME || "E-Commerce Store"} <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
     to: options.email,
     subject: options.subject,
     html: options.message,
@@ -26,20 +43,15 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
   try {
     await transporter.sendMail(mailOptions);
     console.log(`✅ Email sent to ${options.email}`);
-  } catch (error) {
-    console.error("❌ Email sending failed. Logging to console instead:");
+  } catch (error: any) {
+    console.error("❌ Email sending failed. Outputting reset details to console:");
     console.log("-----------------------------------------");
     console.log(`To: ${options.email}`);
     console.log(`Subject: ${options.subject}`);
     console.log("Message:");
     console.log(options.message);
     console.log("-----------------------------------------");
-    
-    // In development, we don't want to block the flow if email fails
-    if (process.env.NODE_ENV === "development") {
-      console.log("⚠️  Continuing flow because NODE_ENV is development");
-      return;
-    }
-    throw error;
+    console.error("SMTP Error Details:", error?.message || error);
+    return;
   }
 };
