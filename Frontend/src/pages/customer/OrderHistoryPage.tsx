@@ -276,16 +276,16 @@ export const OrderHistoryPage = () => {
     // Brand name
     setTxt(white);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("LUXE", margin, 18);
+    doc.setFontSize(18);
+    doc.text("E-COMMERCE", margin, 18);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(20);
-    doc.text(" STORE", margin + 26, 18);
+    doc.setFontSize(18);
+    doc.text(" STORE", margin + 50, 18);
 
     // Tagline
     doc.setFontSize(8);
     setTxt([199, 210, 254]); // indigo-200
-    doc.text("Premium Fashion & Lifestyle", margin, 26);
+    doc.text("Premium Online Shopping", margin, 26);
 
     // TAX INVOICE label (right)
     setTxt(white);
@@ -318,14 +318,14 @@ export const OrderHistoryPage = () => {
     setTxt(ink);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
-    doc.text("Luxe Store Pvt. Ltd.", margin + 4, y + 16);
+    doc.text("E-Commerce Store Pvt. Ltd.", margin + 4, y + 16);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     setTxt(muted);
     doc.text("12, Commerce Nagar, MG Road", margin + 4, y + 23);
     doc.text("Bengaluru, Karnataka — 560001", margin + 4, y + 29);
     doc.text("GSTIN: 29AABCU9603R1ZX", margin + 4, y + 35);
-    doc.text("support@luxestore.in", margin + 4, y + 41);
+    doc.text("support@ecommercestore.com", margin + 4, y + 41);
 
     // Right panel – Bill to
     const rightX = pageW / 2 + 4;
@@ -499,7 +499,7 @@ export const OrderHistoryPage = () => {
     doc.setFontSize(7);
     doc.text("• All sales are final. Returns accepted within 7 days of delivery.", margin, noteY + 5);
     doc.text("• This is a computer-generated invoice and does not require a physical signature.", margin, noteY + 10);
-    doc.text("• For queries, contact us at support@luxestore.in or call 1800-123-4567.", margin, noteY + 15);
+    doc.text("• For queries, contact us at support@ecommercestore.com or call 1800-123-4567.", margin, noteY + 15);
 
     /* ── 9. PAGE FOOTER BAND ─────────────────────────── */
     setFill(accent);
@@ -507,9 +507,9 @@ export const OrderHistoryPage = () => {
     setTxt(white);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
-    doc.text("Thank you for shopping with Luxe Store! | www.luxestore.in", pageW / 2, pageH - 5, { align: "center" });
+    doc.text("Thank you for shopping with E-Commerce Store! | www.ecommercestore.com", pageW / 2, pageH - 5, { align: "center" });
 
-    doc.save(`LuxeStore_Invoice_${invoiceNo}.pdf`);
+    doc.save(`ECommerceStore_Invoice_${invoiceNo}.pdf`);
     toast.success("Invoice downloaded!");
   };
 
