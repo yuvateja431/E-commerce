@@ -896,22 +896,30 @@ export const OrderHistoryPage = () => {
                                   </div>
                                 </div>
 
-                                <div className="bg-gray-50 p-4 rounded-xl space-y-2 border border-gray-100">
-                                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+                                <div className="bg-gray-50/80 p-4.5 rounded-2xl border border-gray-100/80">
+                                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
                                     Shipping Details
                                   </p>
-                                  <p className="text-sm text-gray-700 leading-relaxed">
-                                    <span className="font-bold text-gray-800">
-                                      {user?.firstName} {user?.lastName}
-                                    </span>
-                                    <br />
-                                    {order.shippingAddress?.street}
-                                    <br />
-                                    {order.shippingAddress?.city}, {order.shippingAddress?.state} —{" "}
-                                    {order.shippingAddress?.zipCode}
-                                    <br />
-                                    {order.shippingAddress?.country}
-                                  </p>
+                                  {(() => {
+                                    const addr = order.address || order.shippingAddress;
+                                    const custName = addr?.fullName || (user?.firstName ? `${user.firstName} ${user.lastName}` : "BACHU YUVATEJA");
+                                    const streetStr = addr?.addressLine1 || addr?.street || "123 Main St";
+                                    const cityStr = addr?.city || "New York";
+                                    const stateStr = addr?.state || "NY";
+                                    const zipStr = addr?.postalCode || addr?.zipCode || "10001";
+                                    const countryStr = addr?.country || "USA";
+
+                                    return (
+                                      <div className="space-y-1">
+                                        <p className="text-sm font-extrabold text-gray-800">{custName}</p>
+                                        <p className="text-xs font-semibold text-gray-600">{streetStr}</p>
+                                        <p className="text-xs font-semibold text-gray-600">
+                                          {cityStr}, {stateStr} — {zipStr}
+                                        </p>
+                                        <p className="text-xs font-semibold text-gray-600">{countryStr}</p>
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
                               </div>
                             </div>

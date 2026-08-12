@@ -150,7 +150,14 @@ export class OrderService {
         });
       }
 
-      return newOrder;
+      return await tx.order.findUnique({
+        where: { id: newOrder.id },
+        include: {
+          items: { include: { product: true } },
+          address: true,
+          user: { select: { firstName: true, lastName: true, email: true } }
+        }
+      });
     });
 
     return order;
@@ -159,7 +166,11 @@ export class OrderService {
   static async getOrders(userId: string) {
     return await prisma.order.findMany({
       where: { userId },
-      include: { items: { include: { product: true } } },
+      include: { 
+        items: { include: { product: true } },
+        address: true,
+        user: { select: { firstName: true, lastName: true, email: true } }
+      },
       orderBy: { createdAt: "desc" }
     });
   }

@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../store";
 import {
   FiShoppingCart, FiHeart, FiSearch, FiLogOut,
-  FiGrid, FiUser, FiMoreVertical, FiChevronDown
+  FiGrid, FiUser, FiMoreVertical, FiChevronDown, FiMapPin
 } from "react-icons/fi";
 import { logoutAsync } from "../store/authSlice";
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,21 +37,42 @@ export const CustomerLayout = () => {
     <div className="min-h-screen flex flex-col" style={{ background: "#FAFAFA" }}>
       {/* ─── Header matching the exact requested UI ─── */}
       <header className="sticky top-0 z-50 bg-white border-b border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-[76px] flex items-center justify-between gap-6">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-[76px] flex items-center justify-between gap-4 sm:gap-6">
 
-          {/* ── Logo ── */}
-          <Link
-            to="/"
-            className="flex items-center gap-3 shrink-0"
-          >
-            <div className="h-10 w-10 bg-[#6366F1] rounded-xl flex items-center justify-center shadow-sm">
-              <FiShoppingCart className="text-white" size={18} />
+          {/* ── Logo & Location Container ── */}
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+            <Link
+              to="/"
+              className="flex items-center gap-3 shrink-0"
+            >
+              <div className="h-10 w-10 bg-[#6366F1] rounded-xl flex items-center justify-center shadow-sm">
+                <FiShoppingCart className="text-white" size={18} />
+              </div>
+              <span className="text-[17px] font-black tracking-wide hidden sm:block">
+                <span className="text-[#0F172A]">E-COMMERCE </span>
+                <span className="text-[#6366F1]">STORE</span>
+              </span>
+            </Link>
+
+            {/* ── Deliver To Location Widget (Right of logo) ── */}
+            <div
+              onClick={() => navigate(user ? "/profile?tab=addresses" : "/login")}
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200/80 cursor-pointer transition select-none shrink-0"
+              title="Change Delivery Location"
+            >
+              <div className="text-slate-800 shrink-0">
+                <FiMapPin size={18} className="stroke-[2.2]" />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-[10px] font-semibold text-slate-500 leading-tight">
+                  Deliver to {user?.firstName ? user.firstName.toLowerCase() : "sai"}
+                </span>
+                <span className="text-[12px] font-black text-slate-900 leading-tight tracking-tight">
+                  Machilipa... 521001
+                </span>
+              </div>
             </div>
-            <span className="text-[17px] font-black tracking-wide hidden sm:block">
-              <span className="text-[#0F172A]">E-COMMERCE </span>
-              <span className="text-[#6366F1]">STORE</span>
-            </span>
-          </Link>
+          </div>
 
           {/* ── Search Pill ── */}
           <div className="flex-1 max-w-[500px] mx-4 hidden md:block relative">
