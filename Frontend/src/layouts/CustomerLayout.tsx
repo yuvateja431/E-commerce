@@ -143,6 +143,15 @@ export const CustomerLayout = () => {
                               <FiUser size={16} />
                               <span>My Account</span>
                             </Link>
+                            <Link
+                              to="/profile?tab=orders"
+                              state={{ tab: "orders" }}
+                              onClick={() => setIsMenuOpen(false)}
+                              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition text-sm font-semibold"
+                            >
+                              <FiShoppingCart size={16} />
+                              <span>My Orders</span>
+                            </Link>
                             {(user.role === "ADMIN" || user.role === "MANAGER") && (
                               <Link
                                 to="/admin"

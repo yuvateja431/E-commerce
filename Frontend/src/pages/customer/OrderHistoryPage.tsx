@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { logoutAsync, updateUser } from "../../store/authSlice";
 import type { RootState } from "../../store";
@@ -39,7 +39,26 @@ const statusConfig: any = {
 };
 
 export const OrderHistoryPage = () => {
-  const [activeTab, setActiveTab] = useState<"profile" | "addresses" | "orders">("profile");
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  const getInitialTab = (): "profile" | "addresses" | "orders" => {
+    const tab = location.state?.tab || searchParams.get("tab");
+    if (tab === "orders" || tab === "addresses" || tab === "profile") {
+      return tab;
+    }
+    return "profile";
+  };
+
+  const [activeTab, setActiveTab] = useState<"profile" | "addresses" | "orders">(getInitialTab);
+
+  useEffect(() => {
+    const tab = location.state?.tab || searchParams.get("tab");
+    if (tab === "orders" || tab === "addresses" || tab === "profile") {
+      setActiveTab(tab);
+    }
+  }, [location.state, searchParams]);
+
   const [orders, setOrders] = useState([]);
   const [addresses, setAddresses] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);

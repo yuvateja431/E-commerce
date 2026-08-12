@@ -177,7 +177,7 @@ export default function OrderConfirmationPage() {
 
   const handleViewOrders = () => {
     dispatch(reset());
-    navigate("/profile");
+    navigate("/profile?tab=orders", { state: { tab: "orders" } });
   };
 
   return (
