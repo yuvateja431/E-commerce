@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
+    "build": "npx prisma generate --schema=./prisma/schema.prisma && tsc",
     "start": "node dist/server.js",
     "prisma:generate": "npx prisma generate --schema=./prisma/schema.prisma",
     "prisma:migrate": "prisma migrate dev"
@@ -34,6 +34,7 @@
     "nodemailer": "^8.0.7",
     "prisma": "^6.0.0",
     "razorpay": "^2.9.6",
+    "typescript": "^6.0.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -42,7 +43,6 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.8.0",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^6.0.3"
+    "ts-node-dev": "^2.0.0"
   }
 }
