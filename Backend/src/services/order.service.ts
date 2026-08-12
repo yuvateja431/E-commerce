@@ -188,7 +188,10 @@ export class OrderService {
       where,
       skip,
       take: Number(limit),
-      include: { user: { select: { firstName: true, lastName: true } } },
+      include: {
+        user: { select: { firstName: true, lastName: true, email: true } },
+        items: { include: { product: true } }
+      },
       orderBy: { createdAt: "desc" }
     });
 

@@ -78,7 +78,18 @@ export const ProductCard = ({ product }: { product: any }) => {
         </div>
 
         <div className="flex justify-between items-center mt-4">
-          <span className="text-xl font-bold text-gray-900">₹{product.price}</span>
+          <span 
+            style={{
+              fontFamily: '"Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
+              fontStyle: 'normal',
+              fontWeight: 600,
+              color: 'rgb(31, 41, 55)',
+              fontSize: '14px',
+              lineHeight: '20px'
+            }}
+          >
+            ₹{product.price}
+          </span>
             <div className="flex gap-2">
               <button 
                 onClick={handleAddToCart}

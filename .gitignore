@@ -1,0 +1,34 @@
+# Environment variable secret files (NEVER COMMIT TO GIT)
+.env
+.env.*
+*.env
+!.env.example
+Backend/.env
+Frontend/.env
+
+# Node modules & dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs & distribution directories
+dist/
+**/dist/
+build/
+**/build/
+dist-ssr/
+
+# Temporary files & logs
+*.log
+logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+*.tmp*
+tsc_output.txt
+
+# Editor / System files
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell, PieChart, Pie
@@ -53,10 +54,25 @@ export const AdminAnalyticsPage = () => {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-gray-900 tracking-tight">System Analytics</h2>
-          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mt-1">
-            Real-time traffic metrics, conversion funnel flows, and acquisition channels
-          </p>
+          <h1
+            style={{
+              fontFamily: '"Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
+              fontStyle: 'normal',
+              fontWeight: 700,
+              color: 'rgb(17, 24, 39)',
+              fontSize: '24px',
+              lineHeight: '32px'
+            }}
+          >
+            Analytics
+          </h1>
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1">
+            <Link to="/admin/dashboard" className="hover:text-indigo-600 transition cursor-pointer">Home</Link>
+            <span className="text-slate-400">&gt;</span>
+            <Link to="/admin/analytics" className="hover:text-indigo-600 transition cursor-pointer">Orders &amp; Delivery</Link>
+            <span className="text-slate-400">&gt;</span>
+            <Link to="/admin/analytics" className="text-[#4f39f6] font-bold hover:underline cursor-pointer">Analytics</Link>
+          </div>
         </div>
 
         {/* Dynamic Selector Dropdown */}

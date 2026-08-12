@@ -37,6 +37,17 @@ export const authenticate = async (
       throw new ApiError(401, "Unauthorized request");
     }
 
+    // Normalize token: remove common wrappers that can appear in cookies/headers
+    if (typeof token === "string") {
+      token = token.trim();
+      // Some clients or middleware may send signed cookie values prefixed with `s:`
+      if (token.startsWith("s:")) token = token.slice(2);
+      // Strip surrounding quotes if present
+      if ((token.startsWith('"') && token.endsWith('"')) || (token.startsWith("'") && token.endsWith("'"))) {
+        token = token.slice(1, -1);
+      }
+    }
+
     const decodedToken: any = jwt.verify(
       token,
       process.env.ACCESS_TOKEN_SECRET || "access_secret"
@@ -63,7 +74,7 @@ export const authenticate = async (
     // If token expired, attempt refresh using refresh token
     if (error instanceof jwt.TokenExpiredError) {
       try {
-        const oldRefreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+        const oldRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
         if (!oldRefreshToken) {
           throw new ApiError(401, "Refresh token is required");
         }
@@ -115,7 +126,12 @@ export const authenticate = async (
         );
       }
     }
-    // Other errors (e.g., malformed token)
+    // Token expired handled above. Handle other JWT errors explicitly.
+    if (error instanceof jwt.JsonWebTokenError) {
+      return next(new ApiError(401, (error as Error)?.message || "Invalid access token"));
+    }
+
+    // Fallback for other errors
     return next(
       new ApiError(401, (error as Error)?.message || "Invalid access token")
     );

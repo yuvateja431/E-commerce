@@ -73,9 +73,6 @@ export const CustomerLayout = () => {
               <Link to="/products" className="text-[14px] font-bold text-[#1E293B] hover:text-[#6366F1] transition">
                 Shop
               </Link>
-              <Link to="/products?category=accessories" className="text-[14px] font-bold text-[#1E293B] hover:text-[#6366F1] transition">
-                Accessories
-              </Link>
               <Link to="/products?tag=deals" className="flex items-center gap-2 text-[14px] font-bold text-[#1E293B] hover:text-[#6366F1] transition">
                 Deals
                 <span className="text-[10px] font-black bg-[#E0E7FF] text-[#6366F1] px-2 py-0.5 rounded-full leading-none">
