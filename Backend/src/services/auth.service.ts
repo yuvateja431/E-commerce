@@ -152,7 +152,8 @@ export class AuthService {
       },
     });
 
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const baseUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+    const resetUrl = `${baseUrl}/reset-password/${resetToken}`;
     const message = `
       <h1>Password Reset Request</h1>
       <p>You requested a password reset. Click the link below to reset your password:</p>
