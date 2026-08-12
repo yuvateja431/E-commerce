@@ -1,6 +1,4 @@
 import { useEffect } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { useDispatch, useSelector } from "react-redux";
 import { selectCheckout, reset } from "../../store/slices/checkoutSlice";
 import { fetchOrder } from "../../services/checkoutService";
@@ -8,6 +6,7 @@ import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { FiCheckCircle, FiPackage, FiMapPin, FiDownload, FiShoppingBag, FiList } from "react-icons/fi";
 import { motion } from "framer-motion";
+import { generateInvoicePDF } from "../../utils/generateInvoicePDF";
 
 export default function OrderConfirmationPage() {
   const dispatch = useDispatch();
@@ -43,136 +42,7 @@ export default function OrderConfirmationPage() {
       toast.error("Order data not loaded yet");
       return;
     }
-
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-
-    // ── Header ──────────────────────────────────────────────────
-    doc.setFillColor(67, 56, 202); // indigo-700
-    doc.rect(0, 0, pageWidth, 36, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
-    doc.setFont("helvetica", "bold");
-    doc.text("E-Commerce Store", 14, 16);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text("TAX INVOICE", 14, 27);
-
-    // Invoice number & date (right-aligned)
-    doc.setFontSize(9);
-    const invoiceDate = order.createdAt
-      ? new Date(order.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
-      : new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
-    doc.text(`Invoice Date: ${invoiceDate}`, pageWidth - 14, 16, { align: "right" });
-    doc.text(`Order ID: #${(order.id ?? orderId ?? "").slice(0, 8).toUpperCase()}`, pageWidth - 14, 27, { align: "right" });
-
-    // ── Bill To / Ship To ────────────────────────────────────────
-    doc.setTextColor(30, 30, 30);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("Bill To / Ship To:", 14, 48);
-    doc.setFont("helvetica", "normal");
-
-    let addrY = 55;
-    const addr = order.address;
-    if (addr) {
-      const lines = [
-        addr.fullName ?? "",
-        addr.addressLine1 ?? "",
-        addr.addressLine2 ? addr.addressLine2 : null,
-        `${addr.city ?? ""}, ${addr.state ?? ""} — ${addr.postalCode ?? ""}`,
-        addr.country ?? "",
-      ].filter(Boolean) as string[];
-      lines.forEach((line) => {
-        doc.text(line, 14, addrY);
-        addrY += 6;
-      });
-    } else {
-      doc.text("Address not available", 14, addrY);
-      addrY += 6;
-    }
-
-    // Payment status badge
-    const payStatus = order.paymentStatus || order.status || "—";
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(255, 255, 255);
-    doc.setFillColor(22, 163, 74); // green
-    const badgeText = `  ${payStatus}  `;
-    const badgeW = doc.getTextWidth(badgeText) + 4;
-    doc.roundedRect(pageWidth - 14 - badgeW, 44, badgeW, 8, 2, 2, "F");
-    doc.text(badgeText, pageWidth - 14 - badgeW + 2, 50);
-
-    doc.setTextColor(30, 30, 30);
-
-    // ── Items Table ──────────────────────────────────────────────
-    const tableStartY = Math.max(addrY + 8, 80);
-    const items = (order.items ?? []).map((item: any, idx: number) => [
-      idx + 1,
-      item.product?.name ?? "Product",
-      item.quantity,
-      `Rs. ${Number(item.price).toFixed(2)}`,
-      `Rs. ${(Number(item.price) * item.quantity).toFixed(2)}`,
-    ]);
-
-    autoTable(doc, {
-      startY: tableStartY,
-      head: [["#", "Item", "Qty", "Unit Price", "Total"]],
-      body: items,
-      styles: { fontSize: 9, cellPadding: 4 },
-      headStyles: {
-        fillColor: [67, 56, 202],
-        textColor: 255,
-        fontStyle: "bold",
-        halign: "center",
-      },
-      columnStyles: {
-        0: { halign: "center", cellWidth: 12 },
-        2: { halign: "center", cellWidth: 18 },
-        3: { halign: "right", cellWidth: 35 },
-        4: { halign: "right", cellWidth: 35 },
-      },
-      alternateRowStyles: { fillColor: [245, 247, 255] },
-      margin: { left: 14, right: 14 },
-    });
-
-    // ── Totals ───────────────────────────────────────────────────
-    const finalY: number = (doc as any).lastAutoTable?.finalY ?? tableStartY + 30;
-    const shipping = Number(order.shippingAmount ?? 0);
-    const subtotal = (order.items ?? []).reduce(
-      (acc: number, item: any) => acc + Number(item.price) * item.quantity,
-      0
-    );
-    const grandTotal = Number(order.totalAmount ?? subtotal + shipping);
-
-    const totalsX = pageWidth - 60;
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(80, 80, 80);
-    doc.text("Subtotal:", totalsX, finalY + 12);
-    doc.text(`Rs. ${subtotal.toFixed(2)}`, pageWidth - 14, finalY + 12, { align: "right" });
-    doc.text("Shipping:", totalsX, finalY + 20);
-    doc.text(shipping === 0 ? "Free" : `Rs. ${shipping.toFixed(2)}`, pageWidth - 14, finalY + 20, { align: "right" });
-
-    // Grand total bar
-    doc.setFillColor(67, 56, 202);
-    doc.rect(totalsX - 4, finalY + 24, pageWidth - totalsX, 12, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text("Grand Total:", totalsX, finalY + 32);
-    doc.text(`Rs. ${grandTotal.toFixed(2)}`, pageWidth - 16, finalY + 32, { align: "right" });
-
-    // ── Footer ───────────────────────────────────────────────────
-    const footerY = doc.internal.pageSize.getHeight() - 14;
-    doc.setTextColor(150, 150, 150);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.text("Thank you for shopping with E-Commerce Store!", pageWidth / 2, footerY, { align: "center" });
-    doc.text("This is a computer-generated invoice and does not require a signature.", pageWidth / 2, footerY + 5, { align: "center" });
-
-    doc.save(`Invoice_${(order.id ?? orderId ?? "order").slice(0, 8).toUpperCase()}.pdf`);
-    toast.success("Invoice downloaded!");
+    generateInvoicePDF(order);
   };
 
   const handleViewOrders = () => {
