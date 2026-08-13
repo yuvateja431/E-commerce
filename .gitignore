@@ -32,3 +32,8 @@ tsc_output.txt
 .idea/
 .DS_Store
 Thumbs.db
+
+# Vercel
+.vercel/
+**/vercel.json
+

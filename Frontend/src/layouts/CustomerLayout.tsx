@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../store";
@@ -7,16 +7,46 @@ import {
   FiGrid, FiUser, FiMoreVertical, FiChevronDown, FiMapPin
 } from "react-icons/fi";
 import { logoutAsync } from "../store/authSlice";
+import { selectLocation, setLocation } from "../store/slices/locationSlice";
+import { LocationModal } from "../components/LocationModal";
+import api from "../services/api";
 import { motion, AnimatePresence } from "framer-motion";
 
 export const CustomerLayout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { cart } = useSelector((state: RootState) => state.cart || { cart: { items: [] } });
   const { wishlist } = useSelector((state: RootState) => state.wishlist || { wishlist: { items: [] } });
   const { user } = useSelector((state: RootState) => state.auth);
+  const location = useSelector(selectLocation);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Auto-sync default user address when user logs in if custom location is not manually overridden
+  useEffect(() => {
+    if (user && !location.isCustom) {
+      api
+        .get("/addresses/addresses")
+        .then((res) => {
+          const addresses = res.data?.data || [];
+          const defaultAddr = addresses.find((a: any) => a.isDefault) || addresses[0];
+          if (defaultAddr) {
+            dispatch(
+              setLocation({
+                city: defaultAddr.city,
+                pincode: defaultAddr.postalCode,
+                stateName: defaultAddr.state,
+                addressLine: defaultAddr.addressLine1,
+                addressId: defaultAddr.id,
+                isCustom: false,
+              })
+            );
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user]);
 
   const cartCount = cart?.items?.reduce((acc: number, item: any) => acc + item.quantity, 0) || 0;
   const wishlistCount = wishlist?.items?.length || 0;
@@ -56,20 +86,33 @@ export const CustomerLayout = () => {
 
             {/* ── Deliver To Location Widget (Right of logo) ── */}
             <div
-              onClick={() => navigate(user ? "/profile?tab=addresses" : "/login")}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200/80 cursor-pointer transition select-none shrink-0"
-              title="Change Delivery Location"
+              onClick={() => setIsLocationModalOpen(true)}
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-slate-100/80 border border-transparent hover:border-slate-200 cursor-pointer transition select-none shrink-0 group"
+              title="Click to update delivery location"
             >
-              <div className="text-slate-800 shrink-0">
+              <div className="text-slate-800 group-hover:text-indigo-600 transition shrink-0">
                 <FiMapPin size={18} className="stroke-[2.2]" />
               </div>
               <div className="flex flex-col text-left">
-                <span className="text-[10px] font-semibold text-slate-500 leading-tight">
-                  Deliver to {user?.firstName ? user.firstName.toLowerCase() : "sai"}
-                </span>
-                <span className="text-[12px] font-black text-slate-900 leading-tight tracking-tight">
-                  Machilipa... 521001
-                </span>
+                {user ? (
+                  <>
+                    <span className="text-[10px] font-semibold text-slate-500 leading-tight">
+                      Deliver to {user.firstName ? user.firstName.toLowerCase() : "user"}
+                    </span>
+                    <span className="text-[12px] font-black text-slate-900 leading-tight tracking-tight group-hover:text-indigo-600 transition">
+                      {location.city} {location.pincode}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[11px] font-semibold text-slate-600 leading-tight">
+                      Delivering to {location.city || "Hyderabad"} {location.pincode || "500034"}
+                    </span>
+                    <span className="text-[13px] font-black text-slate-900 leading-tight tracking-tight group-hover:text-indigo-600 transition">
+                      Update location
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -276,6 +319,12 @@ export const CustomerLayout = () => {
           </div>
         </div>
       </footer>
+
+      {/* ── Location Picker Modal ── */}
+      <LocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+      />
     </div>
   );
 };

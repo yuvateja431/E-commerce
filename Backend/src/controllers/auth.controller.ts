@@ -83,7 +83,10 @@ export class AuthController {
 
   static async forgotPassword(req: Request, res: Response, next: NextFunction) {
     try {
-      await AuthService.forgotPassword(req.body.email);
+      const origin =
+        req.headers.origin ||
+        (req.headers.referer ? new URL(req.headers.referer).origin : undefined);
+      await AuthService.forgotPassword(req.body.email, origin);
       return res
         .status(200)
         .json(new ApiResponse(200, {}, "If your email exists, a reset link has been sent"));

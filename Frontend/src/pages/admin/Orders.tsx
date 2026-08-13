@@ -13,7 +13,8 @@ import {
   FiCalendar,
   FiUser,
   FiMail,
-  FiShoppingBag
+  FiShoppingBag,
+  FiMapPin
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 
@@ -102,10 +103,21 @@ export const AdminOrdersPage = () => {
   }, []);
 
   const fetchOrders = async () => {
+    setLoading(true);
     try {
-      const res = await api.get("/orders");
-      const fetched = res.data?.data?.orders || res.data?.orders;
-      if (Array.isArray(fetched) && fetched.length > 0) {
+      const res = await api.get("/orders?limit=1000");
+      const rawData = res.data?.data;
+      let fetched: any[] = [];
+
+      if (Array.isArray(rawData)) {
+        fetched = rawData;
+      } else if (Array.isArray(rawData?.orders)) {
+        fetched = rawData.orders;
+      } else if (Array.isArray(res.data?.orders)) {
+        fetched = res.data.orders;
+      }
+
+      if (fetched.length > 0) {
         setOrders(fetched);
       } else {
         setOrders(initialMockOrders);
@@ -163,16 +175,28 @@ export const AdminOrdersPage = () => {
     ];
   };
 
-  const getInitials = (firstName?: string, lastName?: string) => {
-    const fn = (firstName || "B")[0]?.toUpperCase() || "";
-    const ln = (lastName || "Y")[0]?.toUpperCase() || "";
-    return `${fn}${ln}` || "BY";
+  const getFullName = (order: any) => {
+    if (!order) return "CUSTOMER";
+    if (typeof order === "string") return order.toUpperCase();
+    if (order.user?.firstName || order.user?.lastName) {
+      return `${order.user.firstName || ""} ${order.user.lastName || ""}`.trim().toUpperCase();
+    }
+    if (order.address?.fullName) {
+      return order.address.fullName.toUpperCase();
+    }
+    if (order.address?.name) {
+      return order.address.name.toUpperCase();
+    }
+    return "CUSTOMER";
   };
 
-  const getFullName = (firstName?: string, lastName?: string) => {
-    const fn = (firstName || "BACHU").toUpperCase();
-    const ln = (lastName || "YUVATEJA").toUpperCase();
-    return `${fn} ${ln}`.trim();
+  const getInitials = (order: any) => {
+    const name = getFullName(order);
+    const parts = name.split(" ").filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return (name[0] || "C").toUpperCase();
   };
 
   const getStatusBadgeStyle = (status: string) => {
@@ -204,13 +228,26 @@ export const AdminOrdersPage = () => {
   };
 
   const filteredOrders = orders
-    .filter(o => statusFilter === "ALL" || o.status === statusFilter)
-    .filter(o =>
-      (o.id || "").toLowerCase().includes(search.toLowerCase()) ||
-      (o.user?.firstName || "").toLowerCase().includes(search.toLowerCase()) ||
-      (o.user?.lastName || "").toLowerCase().includes(search.toLowerCase()) ||
-      (o.user?.email || "").toLowerCase().includes(search.toLowerCase())
-    );
+    .filter(o => statusFilter === "ALL" || (o.status || "").toUpperCase() === statusFilter.toUpperCase())
+    .filter(o => {
+      const q = search.toLowerCase();
+      if (!q) return true;
+      const orderId = (o.id || "").toLowerCase();
+      const userFn = (o.user?.firstName || "").toLowerCase();
+      const userLn = (o.user?.lastName || "").toLowerCase();
+      const userEmail = (o.user?.email || "").toLowerCase();
+      const addrName = (o.address?.fullName || o.address?.name || "").toLowerCase();
+      const addrPhone = (o.address?.phone || "").toLowerCase();
+
+      return (
+        orderId.includes(q) ||
+        userFn.includes(q) ||
+        userLn.includes(q) ||
+        userEmail.includes(q) ||
+        addrName.includes(q) ||
+        addrPhone.includes(q)
+      );
+    });
 
   const totalItems = filteredOrders.length;
   const totalPages = Math.ceil(totalItems / pageSize) || 1;
@@ -308,8 +345,8 @@ export const AdminOrdersPage = () => {
               ) : (
                 paginatedOrders.map((order: any) => {
                   const displayId = `#${order.id?.slice(0, 8) || order.id}`;
-                  const customerName = getFullName(order.user?.firstName, order.user?.lastName);
-                  const initials = getInitials(order.user?.firstName, order.user?.lastName);
+                  const customerName = getFullName(order);
+                  const initials = getInitials(order);
                   const badgeStyle = getStatusBadgeStyle(order.status);
                   const formattedTotal = `₹${Number(order.totalAmount || 0).toLocaleString("en-IN")}`;
 
@@ -566,7 +603,7 @@ export const AdminOrdersPage = () => {
                   <div>
                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">CUSTOMER NAME</p>
                     <p className="text-sm font-bold text-slate-900 mt-0.5">
-                      {getFullName(selectedOrder.user?.firstName, selectedOrder.user?.lastName)}
+                      {getFullName(selectedOrder)}
                     </p>
                   </div>
                 </div>
@@ -579,11 +616,26 @@ export const AdminOrdersPage = () => {
                   <div>
                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">EMAIL ADDRESS</p>
                     <p className="text-sm font-semibold text-slate-700 mt-0.5 break-all">
-                      {selectedOrder.user?.email || "yuvatejabachu13@gmail.com"}
+                      {selectedOrder.user?.email || selectedOrder.address?.email || "customer@example.com"}
                     </p>
                   </div>
                 </div>
               </div>
+
+              {/* Shipping Address Box if available */}
+              {selectedOrder.address && (
+                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-xs space-y-1">
+                  <p className="font-bold text-indigo-600 uppercase tracking-wider text-[11px] mb-1.5 flex items-center gap-1.5">
+                    <FiMapPin size={14} /> Shipping Address
+                  </p>
+                  <p className="font-bold text-slate-900">{selectedOrder.address.fullName || selectedOrder.address.name || getFullName(selectedOrder)}</p>
+                  <p className="text-slate-600">{selectedOrder.address.addressLine1} {selectedOrder.address.addressLine2 || ""}</p>
+                  <p className="text-slate-600">{selectedOrder.address.city}, {selectedOrder.address.state} — {selectedOrder.address.postalCode}</p>
+                  {selectedOrder.address.phone && selectedOrder.address.phone !== "0000000000" && (
+                    <p className="text-slate-500 font-semibold">Phone: {selectedOrder.address.phone}</p>
+                  )}
+                </div>
+              )}
 
               {/* Order Items Table Section */}
               <div>

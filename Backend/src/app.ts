@@ -40,8 +40,14 @@ const ALLOWED_ORIGINS = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow Postman, mobile apps, curl, and localhost dev origins
-      if (!origin || ALLOWED_ORIGINS.includes(origin) || origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
+      // Allow Postman, mobile apps, curl, localhost, and Vercel deployment origins
+      if (
+        !origin ||
+        ALLOWED_ORIGINS.includes(origin) ||
+        origin.startsWith("http://localhost:") ||
+        origin.startsWith("http://127.0.0.1:") ||
+        origin.endsWith(".vercel.app")
+      ) {
         return callback(null, true);
       }
 

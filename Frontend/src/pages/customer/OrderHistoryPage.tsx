@@ -5,6 +5,7 @@ import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { logoutAsync, updateUser } from "../../store/authSlice";
 import type { RootState } from "../../store";
+import { deduplicateAddresses } from "../../utils/addressUtils";
 import {
   FiPackage,
   FiTruck,
@@ -119,7 +120,8 @@ export const OrderHistoryPage = () => {
     setLoadingAddresses(true);
     try {
       const res = await api.get("/addresses/addresses");
-      setAddresses(res.data?.data || []);
+      const rawAddresses = res.data?.data || [];
+      setAddresses(deduplicateAddresses(rawAddresses));
     } catch (error) {
       console.error("Error fetching addresses", error);
     } finally {

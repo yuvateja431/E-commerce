@@ -76,20 +76,39 @@ export class OrderService {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new ApiError(404, "User not found");
 
-    // Create the address for this order based on the provided shipping address
-    const address = await prisma.address.create({
-      data: {
-        userId,
-        fullName: user.firstName + " " + user.lastName,
-        phone: "0000000000", // Placeholder if not provided
-        addressLine1: shippingAddress.street,
-        city: shippingAddress.city,
-        state: shippingAddress.state,
-        postalCode: shippingAddress.zipCode,
-        country: shippingAddress.country,
-        addressType: "HOME",
-      }
+    // Check if user already has an address matching this street & postal code
+    const userAddresses = await prisma.address.findMany({ where: { userId } });
+    const normStreet = (shippingAddress.street || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const normZip = (shippingAddress.zipCode || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const normCity = (shippingAddress.city || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    let address = userAddresses.find((a) => {
+      const aStreet = (a.addressLine1 || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const aZip = (a.postalCode || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const aCity = (a.city || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      return (
+        (aStreet === normStreet && aZip === normZip) ||
+        (aStreet.includes(normStreet) && aZip === normZip && aCity === normCity)
+      );
     });
+
+    if (!address) {
+      const isFirst = userAddresses.length === 0;
+      address = await prisma.address.create({
+        data: {
+          userId,
+          fullName: user.firstName + " " + user.lastName,
+          phone: "0000000000",
+          addressLine1: shippingAddress.street,
+          city: shippingAddress.city,
+          state: shippingAddress.state,
+          postalCode: shippingAddress.zipCode,
+          country: shippingAddress.country,
+          addressType: "HOME",
+          isDefault: isFirst,
+        },
+      });
+    }
 
     // Transaction for order creation and stock update
     const order = await prisma.$transaction(async (tx) => {
@@ -188,19 +207,22 @@ export class OrderService {
     return order;
   }
 
-  static async getAllOrders(query: any) {
-    const { status, page = 1, limit = 10 } = query;
-    const skip = (Number(page) - 1) * Number(limit);
+  static async getAllOrders(query: any = {}) {
+    const { status, page = 1, limit } = query;
+    const limitNum = limit === 'all' ? 1000 : (Number(limit) || 1000);
+    const pageNum = Number(page) || 1;
+    const skip = (pageNum - 1) * limitNum;
 
     const where: any = {};
-    if (status) where.status = status;
+    if (status && status !== 'ALL') where.status = status;
 
     const orders = await prisma.order.findMany({
       where,
       skip,
-      take: Number(limit),
+      take: limitNum,
       include: {
-        user: { select: { firstName: true, lastName: true, email: true } },
+        user: { select: { id: true, firstName: true, lastName: true, email: true } },
+        address: true,
         items: { include: { product: true } }
       },
       orderBy: { createdAt: "desc" }
@@ -208,7 +230,7 @@ export class OrderService {
 
     const total = await prisma.order.count({ where });
 
-    return { orders, total, page: Number(page), limit: Number(limit) };
+    return { orders, total, page: pageNum, limit: limitNum };
   }
 
   static async getOrderCount() {

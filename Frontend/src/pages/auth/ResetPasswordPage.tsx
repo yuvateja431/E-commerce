@@ -2,7 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { AuthLayout } from "../../layouts/AuthLayout";
 import { Input } from "../../components/Input";
@@ -29,7 +29,9 @@ type ResetFormValues = z.infer<typeof resetSchema>;
 
 export const ResetPasswordPage: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
-  const { token } = useParams<{ token: string }>();
+  const { token: paramToken } = useParams<{ token: string }>();
+  const [searchParams] = useSearchParams();
+  const token = paramToken || searchParams.get("token");
   const navigate = useNavigate();
 
   const {
@@ -41,6 +43,10 @@ export const ResetPasswordPage: React.FC = () => {
   });
 
   const onSubmit = async (data: ResetFormValues) => {
+    if (!token) {
+      toast.error("Invalid or missing reset token");
+      return;
+    }
     setLoading(true);
     try {
       await api.post(`/auth/reset-password/${token}`, data);

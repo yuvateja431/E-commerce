@@ -15,10 +15,17 @@ import {
   FiShoppingBag,
   FiTag,
   FiShield,
-  FiRotateCcw
+  FiRotateCcw,
+  FiCheck,
+  FiHome,
+  FiBriefcase,
+  FiAlertCircle,
 } from "react-icons/fi";
 import type { RootState } from "../../store";
 import { clearCart } from "../../store/cartSlice";
+import { selectLocation } from "../../store/slices/locationSlice";
+import { LocationModal } from "../../components/LocationModal";
+import { deduplicateAddresses } from "../../utils/addressUtils";
 import toast from "react-hot-toast";
 import OrderConfirmationPage from "../checkout/OrderConfirmationPage";
 
@@ -75,6 +82,12 @@ export const CheckoutPage = () => {
   const [discountAmount, setDiscountAmount] = useState(0);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+
+  const deliveryLocation = useSelector(selectLocation);
+  const { user } = useSelector((state: RootState) => state.auth);
   const { cart } = useSelector((state: RootState) => state.cart || { cart: { items: [] } });
   const { instantOrder } = useSelector((state: RootState) => state.checkout || { instantOrder: null });
   const [instantProduct, setInstantProduct] = useState<any>(null);
@@ -82,6 +95,19 @@ export const CheckoutPage = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Load saved user addresses if logged in
+  useEffect(() => {
+    if (user) {
+      api
+        .get("/addresses/addresses")
+        .then((res) => {
+          const raw = res.data?.data || [];
+          setSavedAddresses(deduplicateAddresses(raw));
+        })
+        .catch(() => setSavedAddresses([]));
+    }
+  }, [user]);
 
   useEffect(() => {
     if (instantOrder?.productId) {
@@ -100,17 +126,48 @@ export const CheckoutPage = () => {
     }
   }, [instantOrder]);
 
-  const { register, handleSubmit, formState: { errors }, watch } = useForm<CheckoutForm>({
+  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<CheckoutForm>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
-      street: "123 Main St",
-      city: "New York",
-      state: "NY",
-      zipCode: "10001",
-      country: "USA",
+      street: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      country: "India",
       paymentMethod: "CARD"
     }
   });
+
+  // Sync Shipping Address automatically from saved address or delivery location
+  useEffect(() => {
+    if (selectedAddressId && savedAddresses.length > 0) {
+      const addr = savedAddresses.find((a) => a.id === selectedAddressId);
+      if (addr) {
+        setValue("street", addr.addressLine1 || "");
+        setValue("city", addr.city || "");
+        setValue("state", addr.state || "");
+        setValue("zipCode", addr.postalCode || "");
+        setValue("country", addr.country || "India");
+        return;
+      }
+    }
+
+    if (savedAddresses.length > 0) {
+      const defaultAddr = savedAddresses.find((a) => a.isDefault) || savedAddresses[0];
+      setSelectedAddressId(defaultAddr.id);
+      setValue("street", defaultAddr.addressLine1 || "");
+      setValue("city", defaultAddr.city || "");
+      setValue("state", defaultAddr.state || "");
+      setValue("zipCode", defaultAddr.postalCode || "");
+      setValue("country", defaultAddr.country || "India");
+    } else if (deliveryLocation && (deliveryLocation.city || deliveryLocation.pincode)) {
+      setValue("street", deliveryLocation.addressLine || "");
+      setValue("city", deliveryLocation.city || "");
+      setValue("state", deliveryLocation.stateName || "");
+      setValue("zipCode", deliveryLocation.pincode || "");
+      setValue("country", "India");
+    }
+  }, [deliveryLocation, savedAddresses, selectedAddressId, setValue]);
 
   const selectedPayment = watch("paymentMethod");
 
@@ -226,15 +283,105 @@ export const CheckoutPage = () => {
               
               {/* Shipping Address Card */}
               <div className="bg-white p-7 sm:p-8 rounded-3xl border border-slate-100 shadow-[0_2px_15px_rgba(0,0,0,0.03)]">
-                <div className="flex items-center gap-3.5 mb-7">
-                  <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                    <FiMapPin size={20} />
+                <div className="flex items-center justify-between gap-3 mb-7">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                      <FiMapPin size={20} />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-black text-slate-900 tracking-tight">Shipping Address</h2>
+                      <p className="text-xs font-medium text-slate-400 mt-0.5">Enter or select the address for order delivery</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-black text-slate-900 tracking-tight">Shipping Address</h2>
-                    <p className="text-xs font-medium text-slate-400 mt-0.5">Enter the address where you want your order delivered</p>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsLocationModalOpen(true)}
+                    className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0"
+                  >
+                    <FiMapPin size={14} /> Update Location
+                  </button>
                 </div>
+
+                {/* Auto-applied Delivery Address Notification */}
+                {(watch("city") || deliveryLocation?.city) ? (
+                  <div className="mb-6 p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <FiCheck size={18} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-emerald-950">
+                          Automatically taking delivery address for Shipping Address
+                        </p>
+                        <p className="text-xs font-semibold text-emerald-700">
+                          {watch("city") ? `${watch("street") ? watch("street") + ", " : ""}${watch("city")}, ${watch("state")} - ${watch("zipCode")}` : `${deliveryLocation.city} ${deliveryLocation.pincode}`}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0">
+                      <FiAlertCircle size={18} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-amber-900">
+                        No delivery address pre-selected
+                      </p>
+                      <p className="text-xs font-medium text-amber-700">
+                        Please enter your shipping address details below to proceed.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Saved User Addresses Selection */}
+                {savedAddresses.length > 0 && (
+                  <div className="mb-6 space-y-2.5">
+                    <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">
+                      Select from Saved Addresses
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {savedAddresses.map((addr) => {
+                        const isSelected = selectedAddressId === addr.id;
+                        return (
+                          <div
+                            key={addr.id}
+                            onClick={() => {
+                              setSelectedAddressId(addr.id);
+                              setValue("street", addr.addressLine1 || "");
+                              setValue("city", addr.city || "");
+                              setValue("state", addr.state || "");
+                              setValue("zipCode", addr.postalCode || "");
+                              setValue("country", addr.country || "India");
+                            }}
+                            className={`p-3.5 rounded-2xl border cursor-pointer transition flex items-start justify-between ${
+                              isSelected
+                                ? "border-indigo-600 bg-indigo-50/60 shadow-sm ring-1 ring-indigo-600/20"
+                                : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                            }`}
+                          >
+                            <div className="flex items-start gap-2.5">
+                              <div className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 mt-0.5">
+                                {addr.addressType === "HOME" ? <FiHome size={14} /> : <FiBriefcase size={14} />}
+                              </div>
+                              <div>
+                                <p className="text-xs font-black text-slate-900">{addr.name || user?.firstName}</p>
+                                <p className="text-[11px] text-slate-600 line-clamp-1">{addr.addressLine1}</p>
+                                <p className="text-[11px] font-bold text-slate-800">{addr.city}, {addr.postalCode}</p>
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <div className="h-5 w-5 rounded-full bg-indigo-600 text-white flex items-center justify-center shrink-0">
+                                <FiCheck size={12} />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   {/* Street Address */}
@@ -244,7 +391,7 @@ export const CheckoutPage = () => {
                       <input
                         {...register("street")}
                         className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 outline-none transition text-sm font-semibold text-slate-800 placeholder-slate-400"
-                        placeholder="123 Main St"
+                        placeholder="House / Flat No., Street, Area"
                       />
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-500 pointer-events-none">
                         <FiMapPin size={18} />
@@ -259,7 +406,7 @@ export const CheckoutPage = () => {
                     <input
                       {...register("city")}
                       className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 outline-none transition text-sm font-semibold text-slate-800 placeholder-slate-400"
-                      placeholder="New York"
+                      placeholder="City e.g. Hyderabad"
                     />
                     {errors.city && <p className="text-rose-500 text-xs font-bold mt-1.5">{errors.city.message}</p>}
                   </div>
@@ -270,18 +417,18 @@ export const CheckoutPage = () => {
                     <input
                       {...register("state")}
                       className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 outline-none transition text-sm font-semibold text-slate-800 placeholder-slate-400"
-                      placeholder="NY"
+                      placeholder="State e.g. Telangana"
                     />
                     {errors.state && <p className="text-rose-500 text-xs font-bold mt-1.5">{errors.state.message}</p>}
                   </div>
 
                   {/* Zip Code */}
                   <div>
-                    <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">Zip Code</label>
+                    <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">Zip Code / Pincode</label>
                     <input
                       {...register("zipCode")}
                       className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 outline-none transition text-sm font-semibold text-slate-800 placeholder-slate-400"
-                      placeholder="10001"
+                      placeholder="500034"
                     />
                     {errors.zipCode && <p className="text-rose-500 text-xs font-bold mt-1.5">{errors.zipCode.message}</p>}
                   </div>
@@ -292,7 +439,7 @@ export const CheckoutPage = () => {
                     <input
                       {...register("country")}
                       className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 outline-none transition text-sm font-semibold text-slate-800 placeholder-slate-400"
-                      placeholder="USA"
+                      placeholder="India"
                     />
                     {errors.country && <p className="text-rose-500 text-xs font-bold mt-1.5">{errors.country.message}</p>}
                   </div>
@@ -566,6 +713,12 @@ export const CheckoutPage = () => {
 
         </div>
       </div>
+
+      {/* ── Location Modal for updating delivery address on Checkout Page ── */}
+      <LocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+      />
     </div>
   );
 };

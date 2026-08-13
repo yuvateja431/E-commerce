@@ -134,7 +134,7 @@ export class AuthService {
     });
   }
 
-  static async forgotPassword(email: string) {
+  static async forgotPassword(email: string, clientOrigin?: string) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return;
 
@@ -152,18 +152,26 @@ export class AuthService {
       },
     });
 
-    const baseUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+    const fallbackUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const baseUrl = (clientOrigin || fallbackUrl).replace(/\/$/, "");
     const resetUrl = `${baseUrl}/reset-password/${resetToken}`;
     const message = `
-      <h1>Password Reset Request</h1>
-      <p>You requested a password reset. Click the link below to reset your password:</p>
-      <a href="${resetUrl}">${resetUrl}</a>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+        <h2 style="color: #4f39f6;">Password Reset Request</h2>
+        <p style="color: #475569; font-size: 15px;">You requested a password reset for your E-Commerce account. Click the button below to reset your password:</p>
+        <div style="margin: 25px 0;">
+          <a href="${resetUrl}" style="background-color: #4f39f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Reset Password</a>
+        </div>
+        <p style="color: #94a3b8; font-size: 13px;">Or copy and paste this link into your browser:</p>
+        <p style="color: #64748b; font-size: 13px; word-break: break-all;"><a href="${resetUrl}">${resetUrl}</a></p>
+        <p style="color: #cbd5e1; font-size: 12px; margin-top: 30px;">If you did not request a password reset, please ignore this email.</p>
+      </div>
     `;
 
     try {
       await sendEmail({
         email: user.email,
-        subject: "Password Reset Token",
+        subject: "Password Reset Request",
         message,
       });
     } catch (error: any) {
