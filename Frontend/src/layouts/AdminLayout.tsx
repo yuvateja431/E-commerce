@@ -4,7 +4,7 @@ import {
   FiHome, FiGrid, FiBox, FiLayers, FiShoppingCart, FiUsers,
   FiTag, FiPackage, FiBarChart2, FiSettings, FiLogOut,
   FiChevronDown, FiUser, FiBell, FiSearch, FiMenu, FiChevronLeft, FiChevronRight, FiAward,
-  FiAlertTriangle, FiMoon, FiSun
+  FiAlertTriangle, FiMoon, FiSun, FiHelpCircle, FiTruck, FiRefreshCw, FiMail, FiMessageSquare
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import api from "../services/api";
@@ -103,6 +103,16 @@ export const AdminLayout = () => {
         { name: "Products",   path: "/admin/products",   icon: <FiBox />,        badge: null },
         { name: "Categories", path: "/admin/categories", icon: <FiLayers />,     badge: null },
         { name: "Inventory",  path: "/admin/inventory",  icon: <FiPackage />,    badge: null }
+      ]
+    },
+    {
+      title: "CONTENT MANAGEMENT",
+      items: [
+        { name: "FAQs",              path: "/admin/faqs",             icon: <FiHelpCircle />,   badge: null },
+        { name: "Shipping Policy",   path: "/admin/shipping-policy",  icon: <FiTruck />,        badge: null },
+        { name: "Returns & Refunds", path: "/admin/returns-refunds",  icon: <FiRefreshCw />,    badge: null },
+        { name: "Contact Settings",  path: "/admin/contact-us",          icon: <FiMail />,         badge: null },
+        { name: "Contact Messages",  path: "/admin/contact-messages", icon: <FiMessageSquare />,badge: null },
       ]
     },
     {

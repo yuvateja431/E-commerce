@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import axios from "axios";
+import api from "../../services/api";
 import {
   FiArrowRight, FiTruck, FiShield, FiHeadphones,
   FiStar, FiRefreshCw, FiUsers, FiPlayCircle, FiPackage,
@@ -10,6 +10,8 @@ import {
 import { useDispatch } from "react-redux";
 import { addItem } from "../../store/cartSlice";
 import toast from "react-hot-toast";
+
+import heroWatchImg from "../../assets/hero-watch-dome.png";
 
 // Floating bubble positions for the hero (Glass dome scene)
 const bubbles = [
@@ -20,10 +22,29 @@ const bubbles = [
   { size: 18, style: { top: "45%", right: "3%", opacity: 0.4 }, delay: 0.9 },
 ];
 
+const DEFAULT_CATEGORIES = [
+  { id: "cat-electronics", name: "Electronics" },
+  { id: "cat-fashion", name: "Fashion & Apparel" },
+  { id: "cat-accessories", name: "Accessories" },
+  { id: "cat-home", name: "Home & Living" },
+  { id: "cat-beauty", name: "Beauty & Care" },
+  { id: "cat-sports", name: "Sports & Outdoors" },
+];
+
+const goldParticles = [
+  { size: 6, top: "15%", left: "12%", right: undefined, delay: 0 },
+  { size: 4, top: "65%", left: "8%", right: undefined, delay: 0.7 },
+  { size: 8, top: "25%", left: undefined, right: "14%", delay: 0.3 },
+  { size: 5, top: "75%", left: undefined, right: "18%", delay: 1.1 },
+  { size: 7, top: "45%", left: undefined, right: "6%", delay: 0.5 },
+];
+
 export const HomePage = () => {
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>(DEFAULT_CATEGORIES);
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -31,17 +52,35 @@ export const HomePage = () => {
     const fetchData = async () => {
       try {
         const [catRes, prodRes] = await Promise.all([
-          axios.get("/api/categories"),
-          axios.get("/api/products?limit=8"),
+          api.get("/categories"),
+          api.get("/products?limit=8"),
         ]);
-        setCategories(catRes.data?.data?.slice(0, 6) || []);
-        setFeaturedProducts(prodRes.data?.data?.products || []);
+        const fetchedCats = catRes.data?.data;
+        if (Array.isArray(fetchedCats) && fetchedCats.length > 0) {
+          setCategories(fetchedCats.slice(0, 6));
+        } else {
+          setCategories(DEFAULT_CATEGORIES);
+        }
+        const fetchedProds = prodRes.data?.data?.products || (Array.isArray(prodRes.data?.data) ? prodRes.data?.data : []);
+        setFeaturedProducts(fetchedProds);
       } catch (err) {
         console.error("Error fetching homepage data", err);
+        setCategories(DEFAULT_CATEGORIES);
       }
     };
     fetchData();
   }, []);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5; // -0.5 to 0.5
+    setMousePos({ x, y });
+  };
+
+  const handleMouseLeave = () => {
+    setMousePos({ x: 0, y: 0 });
+  };
 
   const handleAddToCart = (product: any, e: React.MouseEvent) => {
     e.preventDefault();
@@ -70,115 +109,158 @@ export const HomePage = () => {
     { from: "#10B981", to: "#34D399" },
   ];
 
+  // Calculated 3D Rotation angles based on mouse
+  const rotateX = -mousePos.y * 18;
+  const rotateY = mousePos.x * 22;
+  const shadowX = -mousePos.x * 35;
+  const shadowY = mousePos.y * 15 + 30;
+
   return (
     <div className="overflow-x-hidden bg-[#FAFAFA]">
 
       {/* ═══════════════════════════════════════════
-          HERO SECTION — matches NEW reference exactly
+          LUXURY 3D HERO SECTION (DARK MODE SHOWCASE)
       ═══════════════════════════════════════════ */}
       <section
-        className="relative overflow-hidden min-h-[640px] flex items-center pt-8 pb-32"
-        style={{ background: "linear-gradient(135deg, #F8F8FF 0%, #F0F2FF 50%, #E6EBFF 100%)" }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className="relative overflow-hidden min-h-[700px] flex items-center pt-10 pb-24 bg-[#050505] text-white select-none border-b border-slate-800/40"
       >
-        {/* Subtle background glow */}
-        <div className="absolute right-0 top-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-100/40 via-transparent to-transparent hidden lg:block pointer-events-none" />
+        {/* Background Ambient Glows & Gradients */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-amber-500/10 via-[#050505] to-[#020202] pointer-events-none" />
+        <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-yellow-500/5 rounded-full blur-[120px] pointer-events-none" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex flex-col lg:flex-row items-center gap-10">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex flex-col lg:flex-row items-center gap-8 lg:gap-12 min-h-[640px] py-8 lg:py-12">
 
-          {/* ── LEFT: Hero Copy ───────────────────────── */}
-          <div className="flex-1 z-10 max-w-lg mt-8 lg:mt-0">
-            {/* "New Collection" badge */}
-            <motion.span
-              initial={{ opacity: 0, y: 10 }}
+          {/* ── LEFT: Hero Copy & CTAs ───────────────────────── */}
+          <div className="flex-1 z-20 max-w-xl text-center lg:text-left">
+            
+            {/* "PREMIUM SMARTWATCH" Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-indigo-600 bg-indigo-50 border border-indigo-100/50 px-4 py-1.5 rounded-full mb-7"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 to-amber-400/5 border border-amber-400/30 text-amber-300 text-[11px] font-extrabold tracking-[0.2em] uppercase mb-8 backdrop-blur-md shadow-[0_0_15px_rgba(212,175,55,0.15)]"
             >
-              <FiZap size={10} />
-              New Collection
-            </motion.span>
+              <FiZap size={12} className="text-amber-400 fill-amber-400" />
+              <span>PREMIUM SMARTWATCH</span>
+            </motion.div>
 
-            {/* Headline */}
+            {/* Large Luxury Headline */}
             <motion.h1
-              initial={{ opacity: 0, x: -24 }}
+              initial={{ opacity: 0, x: -28 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-[52px] lg:text-[68px] font-black leading-[1.05] tracking-tight text-[#0F172A] mb-4"
+              transition={{ delay: 0.1, duration: 0.6 }}
+              className="text-[44px] sm:text-[60px] lg:text-[68px] font-black leading-[1.04] tracking-tight mb-6"
             >
-              Modern Living<br />
-              <span className="bg-gradient-to-r from-violet-600 to-indigo-500 bg-clip-text text-transparent">
-                Premium Style
+              <span className="text-white block">SMART TECHNOLOGY.</span>
+              <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-500 bg-clip-text text-transparent block">
+                TIMELESS DESIGN.
               </span>
             </motion.h1>
 
+            {/* Supporting Copy */}
             <motion.p
-              initial={{ opacity: 0, x: -16 }}
+              initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.18 }}
-              className="text-slate-500 text-[16px] leading-relaxed mb-9 max-w-[380px]"
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="text-slate-300 text-[15px] sm:text-[17px] leading-relaxed mb-10 max-w-md mx-auto lg:mx-0 font-normal tracking-wide"
             >
-              Discover our curated collection of high-end essentials designed for your contemporary lifestyle.
+              Experience a smarter way to stay connected, active, and in control.
             </motion.p>
 
             {/* CTA Buttons */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.26 }}
-              className="flex flex-wrap items-center gap-4 mb-10"
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="flex flex-wrap items-center justify-center lg:justify-start gap-4"
             >
               <Link
                 to="/products"
-                className="inline-flex items-center gap-2.5 bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white px-8 py-4 rounded-2xl font-bold text-sm shadow-[0_8px_20px_rgba(99,102,241,0.3)] hover:shadow-[0_12px_25px_rgba(99,102,241,0.45)] transition-all hover:scale-[1.03] active:scale-[0.97]"
+                className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-600 hover:from-amber-300 hover:to-yellow-500 text-slate-950 px-8 py-4 rounded-2xl font-black text-sm tracking-wide shadow-[0_10px_30px_rgba(212,175,55,0.35)] hover:shadow-[0_15px_35px_rgba(212,175,55,0.5)] transition-all transform hover:-translate-y-0.5 active:translate-y-0"
               >
-                Shop Collection <FiArrowRight size={15} />
+                <span>Shop Now</span>
+                <FiArrowRight size={17} strokeWidth={2.5} />
               </Link>
-              <button className="inline-flex items-center gap-2.5 bg-white hover:bg-slate-50 text-slate-800 px-7 py-4 rounded-2xl font-bold text-sm shadow-sm transition-all hover:scale-[1.02]">
-                <FiPlayCircle size={18} className="text-slate-800" />
-                Watch Video
-              </button>
+
+              <Link
+                to="/products"
+                className="inline-flex items-center gap-2.5 bg-white/5 hover:bg-white/10 text-white border border-white/15 px-8 py-4 rounded-2xl font-bold text-sm backdrop-blur-md transition-all transform hover:-translate-y-0.5"
+              >
+                <span>Explore Collection</span>
+              </Link>
             </motion.div>
 
           </div>
 
-          {/* ── RIGHT: Product Image with Dome ────────────────── */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.15, duration: 0.7, ease: "easeOut" }}
-            className="flex-1 flex justify-center lg:justify-end items-center z-10"
-          >
-            <div className="relative w-[540px] max-w-full">
-              
-              {/* Animated floating bubbles inside/around dome */}
-              {bubbles.map((b, i) => (
+          {/* ── RIGHT: Photorealistic 3D Smartwatch Showcase (Noticeably Increased Image Size) ── */}
+          <div className="flex-1 flex justify-center lg:justify-end items-center z-20 w-full">
+            <div
+              className="relative w-full max-w-[750px]"
+              style={{ perspective: 1200 }}
+            >
+
+              {/* Dynamic Golden Radial Aura */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[620px] h-[620px] bg-gradient-to-tr from-amber-500/20 via-yellow-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+
+              {/* Floating Gold Sparkle Particles */}
+              {goldParticles.map((p, i) => (
                 <motion.div
                   key={i}
-                  animate={{ y: [0, -15, 0] }}
-                  transition={{ duration: 4 + i * 0.5, repeat: Infinity, delay: b.delay, ease: "easeInOut" }}
-                  className="absolute rounded-full z-0"
-                  style={{ 
-                    width: b.size, height: b.size, 
-                    background: "radial-gradient(circle at 30% 30%, #C4B5FD, #7C3AED)", 
-                    boxShadow: "inset -2px -2px 6px rgba(0,0,0,0.1)",
-                    ...b.style 
+                  animate={{ y: [0, -16, 0], opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 3.2 + i * 0.7, repeat: Infinity, delay: p.delay, ease: "easeInOut" }}
+                  className="absolute rounded-full z-30 pointer-events-none bg-gradient-to-r from-amber-300 to-yellow-400 shadow-[0_0_12px_#F59E0B]"
+                  style={{
+                    width: p.size,
+                    height: p.size,
+                    top: p.top,
+                    left: p.left,
+                    right: p.right,
                   }}
                 />
               ))}
 
-              <img
-                src="/assets/hero-watch-dome.png"
-                alt="Premium Smartwatch Collection"
-                className="relative w-full h-auto object-contain z-10 drop-shadow-[0_20px_40px_rgba(99,102,241,0.2)]"
+              {/* Full Watch Image Artwork (Uncropped & Noticeably Larger) */}
+              <motion.div
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+                style={{
+                  transformStyle: "preserve-3d",
+                  transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
+                  transition: "transform 0.15s cubic-bezier(0.2, 0, 0, 1)",
+                }}
+                className="relative z-20 group"
+              >
+                <img
+                  src={heroWatchImg}
+                  alt="Premium Smartwatch Collection"
+                  className="w-full h-auto object-contain pointer-events-none drop-shadow-[0_25px_60px_rgba(0,0,0,0.9)]"
+                  style={{
+                    WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 5%, black 100%)",
+                    maskImage: "linear-gradient(to right, transparent 0%, black 5%, black 100%)",
+                  }}
+                />
+              </motion.div>
+
+              {/* Dynamic Floor Shadow */}
+              <div
+                className="w-[500px] h-9 bg-black/90 rounded-full blur-2xl mx-auto -mt-6 pointer-events-none transition-transform duration-150"
+                style={{
+                  transform: `translate(${shadowX * 0.8}px, ${shadowY * 0.5}px) scaleY(0.4)`,
+                }}
               />
+
             </div>
-          </motion.div>
+          </div>
+
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════
-          FLOATING FEATURE STRIP
+          FLOATING FEATURE STRIP (LIGHT PREVIOUS THEME)
       ═══════════════════════════════════════════ */}
-      <section className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20">
+      <section className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16">
         <div className="bg-white rounded-[32px] shadow-[0_15px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100/60 p-6 sm:p-8">
           <div className="flex flex-wrap justify-center lg:justify-between items-center gap-6 divide-x-0 lg:divide-x divide-slate-100">
             
@@ -242,7 +324,7 @@ export const HomePage = () => {
       </section>
 
       {/* ═══════════════════════════════════════════
-          CATEGORIES GRID
+          CATEGORIES GRID (LIGHT PREVIOUS THEME)
       ═══════════════════════════════════════════ */}
       {categories.length > 0 && (
         <section className="py-20" style={{ background: "#FAFAFA" }}>
@@ -262,7 +344,7 @@ export const HomePage = () => {
                 <motion.div key={cat.id} whileHover={{ y: -6, scale: 1.02 }} transition={{ type: "spring", stiffness: 400 }}>
                   <Link
                     to={`/products?category=${cat.id}`}
-                    className="flex flex-col items-center gap-3 py-6 px-3 bg-white rounded-3xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(99,102,241,0.12)] transition text-center"
+                    className="flex flex-col items-center gap-3 py-6 px-3 bg-white rounded-3xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(99,102,241,0.12)] transition text-center group"
                   >
                     <div
                       className="h-14 w-14 rounded-2xl flex items-center justify-center text-white text-2xl shadow-md"
@@ -282,7 +364,7 @@ export const HomePage = () => {
       )}
 
       {/* ═══════════════════════════════════════════
-          TRENDING PRODUCTS
+          TRENDING PRODUCTS (LIGHT PREVIOUS THEME)
       ═══════════════════════════════════════════ */}
       {featuredProducts.length > 0 && (
         <section className="py-12 bg-white">
@@ -305,7 +387,7 @@ export const HomePage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.06 }}
                   whileHover={{ y: -8 }}
-                  className="bg-white rounded-3xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(99,102,241,0.15)] transition-all duration-250 group relative overflow-hidden"
+                  className="bg-white rounded-3xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(99,102,241,0.15)] transition-all duration-250 group relative overflow-hidden flex flex-col"
                 >
                   {/* Image */}
                   <Link
@@ -346,24 +428,26 @@ export const HomePage = () => {
                   </Link>
 
                   {/* Info */}
-                  <div className="p-4">
-                    <Link
-                      to={`/product/${product.slug || product.id}`}
-                      className="text-sm font-black text-slate-800 hover:text-indigo-600 transition block line-clamp-1 mb-1.5"
-                    >
-                      {product.name}
-                    </Link>
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <Link
+                        to={`/product/${product.slug || product.id}`}
+                        className="text-sm font-black text-slate-800 hover:text-indigo-600 transition block line-clamp-1 mb-1.5"
+                      >
+                        {product.name}
+                      </Link>
 
-                    {/* Stars */}
-                    <div className="flex items-center gap-0.5 mb-3">
-                      {[...Array(5)].map((_, j) => (
-                        <FiStar
-                          key={j} size={10}
-                          className={j < 4 ? "text-amber-400" : "text-slate-200"}
-                          fill={j < 4 ? "currentColor" : "none"}
-                        />
-                      ))}
-                      <span className="text-[9px] text-slate-400 font-bold ml-1">(128)</span>
+                      {/* Stars */}
+                      <div className="flex items-center gap-0.5 mb-3">
+                        {[...Array(5)].map((_, j) => (
+                          <FiStar
+                            key={j} size={10}
+                            className={j < 4 ? "text-amber-400" : "text-slate-200"}
+                            fill={j < 4 ? "currentColor" : "none"}
+                          />
+                        ))}
+                        <span className="text-[9px] text-slate-400 font-bold ml-1">(128)</span>
+                      </div>
                     </div>
 
                     <div className="flex items-center justify-between gap-2">
@@ -386,7 +470,7 @@ export const HomePage = () => {
       )}
 
       {/* ═══════════════════════════════════════════
-          PROMO BANNER
+          PROMO BANNER (LIGHT PREVIOUS THEME)
       ═══════════════════════════════════════════ */}
       <section className="py-10 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
@@ -422,7 +506,8 @@ export const HomePage = () => {
                 to="/products"
                 className="inline-flex items-center gap-2.5 bg-white hover:bg-indigo-50 text-indigo-700 font-black px-8 py-4 rounded-2xl shadow-xl text-sm transition hover:scale-[1.03]"
               >
-                Shop Now <FiArrowRight size={16} />
+                <span>Shop Now</span>
+                <FiArrowRight size={16} />
               </Link>
             </div>
           </motion.div>
@@ -432,3 +517,4 @@ export const HomePage = () => {
     </div>
   );
 };
+

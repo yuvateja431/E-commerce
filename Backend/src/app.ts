@@ -15,6 +15,9 @@ import userRoutes from "./routes/user.routes";
 import checkoutRoutes from "./routes/checkout.routes";
 import addressRoutes from "./routes/address.routes";
 import paymentRoutes from "./routes/payment.routes";
+import faqRoutes from "./routes/faq.routes";
+import contentRoutes from "./routes/content.routes";
+import contactRoutes from "./routes/contact.routes";
 
 import { errorHandler } from "./middleware/error.middleware";
 
@@ -129,6 +132,12 @@ app.use("/api/checkout", checkoutRoutes);
 app.use("/api/addresses", addressRoutes);
 
 app.use("/api/payments", paymentRoutes);
+
+app.use("/api/faqs", faqRoutes);
+
+app.use("/api/content", contentRoutes);
+
+app.use("/api/contact", contactRoutes);
 
 /* =========================================
    FALLBACK ROUTE

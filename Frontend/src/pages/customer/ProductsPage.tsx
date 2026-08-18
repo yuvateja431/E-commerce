@@ -10,8 +10,8 @@ export const ProductsPage = () => {
   const navigate = useNavigate();
   
   // State
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
@@ -41,7 +41,21 @@ export const ProductsPage = () => {
 
   // Fetch Categories
   useEffect(() => {
-    api.get("/categories").then(res => setCategories(res.data?.data || [])).catch(() => {});
+    api.get("/categories").then(res => {
+      const fetched = res.data?.data;
+      if (Array.isArray(fetched) && fetched.length > 0) {
+        setCategories(fetched);
+      } else {
+        setCategories([
+          { id: "cat-electronics", name: "Electronics" },
+          { id: "cat-fashion", name: "Fashion & Apparel" },
+          { id: "cat-accessories", name: "Accessories" },
+          { id: "cat-home", name: "Home & Living" },
+          { id: "cat-beauty", name: "Beauty & Care" },
+          { id: "cat-sports", name: "Sports & Outdoors" },
+        ] as any);
+      }
+    }).catch(() => {});
   }, []);
 
   // Fetch Products

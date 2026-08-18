@@ -21,6 +21,10 @@ import { CartPage } from "./pages/customer/CartPage";
 import { WishlistPage } from "./pages/customer/WishlistPage";
 import { CheckoutPage } from "./pages/customer/CheckoutPage";
 import { OrderHistoryPage } from "./pages/customer/OrderHistoryPage";
+import { FAQPage } from "./pages/customer/FAQPage";
+import { ShippingPolicyPage } from "./pages/customer/ShippingPolicyPage";
+import { ReturnsRefundsPage } from "./pages/customer/ReturnsRefundsPage";
+import { ContactUsPage } from "./pages/customer/ContactUsPage";
 
 // Admin Pages
 import { AdminDashboard } from "./pages/admin/Dashboard";
@@ -34,6 +38,11 @@ import { CouponDetailsPage } from "./pages/admin/CouponDetailsPage";
 import { AdminInventoryPage } from "./pages/admin/Inventory";
 import { AdminSettingsPage } from "./pages/admin/Settings";
 import { AdminAnalyticsPage } from "./pages/admin/Analytics";
+import { AdminFAQsPage } from "./pages/admin/AdminFAQsPage";
+import { AdminShippingPolicyPage } from "./pages/admin/AdminShippingPolicyPage";
+import { AdminReturnsRefundsPage } from "./pages/admin/AdminReturnsRefundsPage";
+import { AdminContactSettingsPage } from "./pages/admin/AdminContactSettingsPage";
+import { AdminContactMessagesPage } from "./pages/admin/AdminContactMessagesPage";
 
 // Components
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -59,6 +68,10 @@ function App() {
           <Route path="product/:id" element={<ProductDetailsPage />} />
           <Route path="cart" element={<CartPage />} />
           <Route path="wishlist" element={<WishlistPage />} />
+          <Route path="faq" element={<FAQPage />} />
+          <Route path="shipping-policy" element={<ShippingPolicyPage />} />
+          <Route path="returns-refunds" element={<ReturnsRefundsPage />} />
+          <Route path="contact-us" element={<ContactUsPage />} />
           <Route
             path="checkout"
             element={
@@ -101,6 +114,11 @@ function App() {
           <Route path="inventory" element={<AdminInventoryPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="analytics" element={<AdminAnalyticsPage />} />
+          <Route path="faqs" element={<AdminFAQsPage />} />
+          <Route path="shipping-policy" element={<AdminShippingPolicyPage />} />
+          <Route path="returns-refunds" element={<AdminReturnsRefundsPage />} />
+          <Route path="contact-us" element={<AdminContactSettingsPage />} />
+          <Route path="contact-messages" element={<AdminContactMessagesPage />} />
         </Route>
 
         {/* Redirects */}

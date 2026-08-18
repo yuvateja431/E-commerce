@@ -288,10 +288,10 @@ export const CustomerLayout = () => {
           <div>
             <h4 className="font-bold text-white mb-6 text-[13px] uppercase tracking-wider">Support</h4>
             <ul className="space-y-3 text-slate-400 text-[13px] font-medium">
-              <li><span className="hover:text-indigo-400 transition cursor-pointer">FAQ</span></li>
-              <li><span className="hover:text-indigo-400 transition cursor-pointer">Shipping Policy</span></li>
-              <li><span className="hover:text-indigo-400 transition cursor-pointer">Returns & Refunds</span></li>
-              <li><span className="hover:text-indigo-400 transition cursor-pointer">Contact Us</span></li>
+              <li><Link to="/faq" className="hover:text-indigo-400 transition">FAQ</Link></li>
+              <li><Link to="/shipping-policy" className="hover:text-indigo-400 transition">Shipping Policy</Link></li>
+              <li><Link to="/returns-refunds" className="hover:text-indigo-400 transition">Returns & Refunds</Link></li>
+              <li><Link to="/contact-us" className="hover:text-indigo-400 transition">Contact Us</Link></li>
             </ul>
           </div>
 
