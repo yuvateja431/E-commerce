@@ -1,0 +1,11 @@
+import { Router } from "express";
+import { UserController } from "../controllers/user.controller.js";
+import { authenticate } from "../middleware/auth.middleware.js";
+import { authorize } from "../middleware/role.middleware.js";
+import { Role } from "@prisma/client";
+const router = Router();
+router.use(authenticate, authorize(Role.ADMIN));
+router.get("/", UserController.getAll);
+router.patch("/:id/role", UserController.updateRole);
+router.delete("/:id", UserController.delete);
+export default router;

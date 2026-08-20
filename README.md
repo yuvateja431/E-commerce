@@ -3,13 +3,13 @@
 ![Node.js](https://img.shields.io/badge/Node.js-v20.x-339933?style=for-the-badge&logo=node.js&logoColor=white)
 ![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
 ![React](https://img.shields.io/badge/React-19.x-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-6.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES2023-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.x-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![Prisma](https://img.shields.io/badge/Prisma_ORM-6.x-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 
-A high-performance, enterprise-grade **Full-Stack E-Commerce Application** built with modern web technologies. It features a stunning customer store UI, a powerful Admin Dashboard for inventory and order management, secure JWT authentication with HttpOnly cookies, dynamic coupon engine, address book management, and Razorpay payment integration.
+A high-performance, enterprise-grade **Full-Stack E-Commerce Application** built with modern web technologies using standard JavaScript (ES Modules / JSX). It features a stunning customer store UI, a powerful Admin Dashboard for inventory and order management, secure JWT authentication with HttpOnly cookies, dynamic coupon engine, address book management, and Razorpay payment integration.
 
 ---
 
@@ -33,7 +33,7 @@ A high-performance, enterprise-grade **Full-Stack E-Commerce Application** built
 ### 🔐 Security & Backend Architecture
 - **JWT Dual Token Auth**: Secure authentication utilizing Access Tokens and Refresh Tokens stored safely in HttpOnly cookies.
 - **Password Hashing**: Bcrypt encryption for user credentials.
-- **Type-Safe Database ORM**: Prisma ORM paired with PostgreSQL hosted on Supabase (with PgBouncer connection pooling).
+- **Database ORM**: Prisma ORM paired with PostgreSQL hosted on Supabase (with PgBouncer connection pooling).
 - **Input Validation**: Schema validation using Zod and Express middleware error handling.
 - **CORS & Rate Limiting**: Secure cross-origin resource sharing configured for local and production deployment environments.
 
@@ -43,14 +43,14 @@ A high-performance, enterprise-grade **Full-Stack E-Commerce Application** built
 
 | Domain | Technology | Description |
 | :--- | :--- | :--- |
-| **Frontend UI** | React 19 + TypeScript | UI Library with type safety |
-| **Build Tool** | Vite 6 | Lightning-fast HMR and bundling |
+| **Frontend UI** | React 19 + JavaScript (JSX) | Modern React components with clean state management |
+| **Build Tool** | Vite 8 | Lightning-fast HMR and bundling |
 | **Styling** | Tailwind CSS v4 | Utility-first CSS framework with modern styling |
-| **Icons & Motion** | Lucide React & Framer Motion | Modern icon sets and smooth micro-animations |
+| **Icons & Motion** | React Icons & Framer Motion | Modern icon sets and smooth micro-animations |
 | **Backend Runtime** | Node.js (v20+) & Express.js | Scalable RESTful API web server |
-| **Language** | TypeScript | end-to-end type safety |
+| **Language** | JavaScript (ES Modules) | Native ES modules with Node `--watch` support |
 | **Database** | Supabase (PostgreSQL) | Cloud relational database |
-| **ORM** | Prisma ORM 6.x | Schema migrations and type-safe database queries |
+| **ORM** | Prisma ORM 6.x | Schema migrations and database queries |
 | **Authentication** | JWT & BcryptJS | Secure session & authentication management |
 | **Payments** | Razorpay SDK | Integrated digital payments API |
 | **Email Services** | Nodemailer | SMTP email delivery for auth & notifications |
@@ -61,31 +61,33 @@ A high-performance, enterprise-grade **Full-Stack E-Commerce Application** built
 
 ```text
 E-Commerce -Store/
-├── Backend/                      # Express TypeScript REST API
+├── Backend/                      # Express JavaScript REST API (Node.js ES Modules)
 │   ├── prisma/                   # Prisma Schema & Database Seeding Scripts
 │   │   ├── schema.prisma         # Database models & relationships
-│   │   ├── seedAdmin.ts          # Script to create/reset Admin credentials
-│   │   └── seedProducts.ts       # Database sample data seeder
+│   │   ├── seedAdmin.js          # Script to create/reset Admin credentials
+│   │   └── seedProducts.js       # Database sample data seeder
 │   ├── src/
 │   │   ├── controllers/          # Request handlers (Auth, Products, Cart, Orders...)
 │   │   ├── middleware/           # Auth, Role, Error handling & CORS middleware
 │   │   ├── routes/               # API route definitions
 │   │   ├── services/             # Business logic & payment service helpers
 │   │   ├── validators/           # Zod schema definitions
-│   │   ├── app.ts                # Express application setup
-│   │   └── server.ts             # Server launcher on port 5000
+│   │   ├── app.js                # Express application setup
+│   │   └── server.js             # Server launcher on port 5000
+│   ├── jsconfig.json             # JS path alias and IDE resolution config
 │   ├── .env                      # Backend Environment Variables
 │   └── package.json
 │
-├── Frontend/                     # React + TypeScript + Vite SPA
+├── Frontend/                     # React + JavaScript + Vite SPA
 │   ├── src/
 │   │   ├── components/           # Reusable UI elements (Navbar, Cards, Modals...)
 │   │   ├── layouts/              # Customer & Admin Layout wrappers
 │   │   ├── pages/                # Application routes (Home, Shop, Admin, Cart...)
 │   │   ├── services/             # Axios/Fetch API client functions
-│   │   ├── App.tsx               # Main application component & routes
-│   │   └── main.tsx              # Application entry point
-│   ├── vite.config.ts            # Vite dev server & proxy rules (`/api` -> 5000)
+│   │   ├── App.jsx               # Main application component & routes
+│   │   └── main.jsx              # Application entry point
+│   ├── jsconfig.json             # JS path alias and IDE resolution config
+│   ├── vite.config.js            # Vite dev server & proxy rules (`/api` -> 5000)
 │   ├── .env                      # Frontend Environment Variables
 │   └── package.json
 │
@@ -174,7 +176,7 @@ npm install
 npm run prisma:migrate
 
 # Seed Admin User
-npx ts-node --transpile-only prisma/seedAdmin.ts
+node prisma/seedAdmin.js
 
 # Start Development Server
 npm run dev
