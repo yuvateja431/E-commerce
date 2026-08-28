@@ -1,32 +1,6 @@
 {
   "users": [
     {
-      "id": "8fb2635c-0bd1-4872-9928-3bfe4e260e7a",
-      "firstName": "raju",
-      "lastName": "yuva",
-      "email": "luckyyuvateja15@gmail.com",
-      "password": "$2b$10$vKGVgATDAOqMqXFJGMI2POux35ypB6A5I8ScnKUNMkCuY0.Ua/lYW",
-      "role": "USER",
-      "isEmailVerified": false,
-      "resetPasswordToken": null,
-      "resetPasswordExpires": null,
-      "createdAt": "2026-05-16T11:01:34.913Z",
-      "updatedAt": "2026-05-18T07:53:37.765Z"
-    },
-    {
-      "id": "e727f7f7-c9ad-4a1b-a4ea-183ee3ee0435",
-      "firstName": "sai",
-      "lastName": "lucky",
-      "email": "sailucky06@gmail.com",
-      "password": "$2b$10$1t1HQjBp0V0lMv.RgyBgyuVLvpJfWj6Ob90XqY/YZ/6QXpuBPMp2i",
-      "role": "USER",
-      "isEmailVerified": false,
-      "resetPasswordToken": null,
-      "resetPasswordExpires": null,
-      "createdAt": "2026-05-18T08:54:48.353Z",
-      "updatedAt": "2026-05-18T08:54:48.353Z"
-    },
-    {
       "id": "b8f104ce-1350-46c8-bfc6-003339340870",
       "firstName": "Admin",
       "lastName": "User",

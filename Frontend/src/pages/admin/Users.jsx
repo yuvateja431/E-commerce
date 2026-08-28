@@ -107,13 +107,7 @@ export const AdminUsersPage = () => {
         document.body.removeChild(link);
         toast.success("Customers exported to CSV");
     };
-    const excludedEmails = [
-        "sailucky06@gmail.com",
-        "luckyyuvateja15@gmail.com",
-        "lucky.yuvateja15@gmail.com"
-    ];
     const filteredUsers = users
-        .filter((u) => !excludedEmails.includes(u.email?.toLowerCase()))
         .filter((u) => roleFilter === "ALL" || u.role === roleFilter)
         .filter((u) => (u.email?.toLowerCase() || "").includes(search.toLowerCase()) ||
         (u.firstName?.toLowerCase() || "").includes(search.toLowerCase()) ||
