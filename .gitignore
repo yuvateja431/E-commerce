@@ -26,7 +26,7 @@ pnpm-debug.log*
 *.tmp*
 tsc_output.txt
 
-# Editor / System files
+# Editor /  System  files
 .vscode/
 !.vscode/extensions.json
 .idea/
