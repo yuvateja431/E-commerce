@@ -103,71 +103,67 @@ export class OrderService {
                 },
             });
         }
-        // Transaction for order creation and stock update
-        const order = await prisma.$transaction(async (tx) => {
-            // 1. Create Order
-            const newOrder = await tx.order.create({
-                data: {
-                    userId,
-                    addressId: address.id,
-                    totalAmount,
-                    paymentMethod: validPaymentMethod,
-                    shippingAmount: 0,
-                    couponId: couponId || null,
-                    status: OrderStatus.PROCESSING,
-                    paymentStatus: "PAID",
-                    items: {
-                        create: itemsToProcess.map((item) => ({
-                            productId: item.productId,
-                            quantity: item.quantity,
-                            price: item.product.price
-                        }))
-                    }
-                },
-                include: { items: true }
-            });
-            // 2. Update Stock
-            for (const item of itemsToProcess) {
-                const inventory = await tx.inventory.findUnique({
+        // 1. Create Order
+        const newOrder = await prisma.order.create({
+            data: {
+                userId,
+                addressId: address.id,
+                totalAmount,
+                paymentMethod: validPaymentMethod,
+                shippingAmount: 0,
+                couponId: couponId || null,
+                status: OrderStatus.PROCESSING,
+                paymentStatus: "PAID",
+                items: {
+                    create: itemsToProcess.map((item) => ({
+                        productId: item.productId,
+                        quantity: item.quantity,
+                        price: item.product.price
+                    }))
+                }
+            },
+            include: { items: true }
+        });
+        // 2. Update Stock
+        for (const item of itemsToProcess) {
+            try {
+                const inventory = await prisma.inventory.findUnique({
                     where: { productId: item.productId }
                 });
-                // Ensure inventory exists; if missing, create with a default large stock
                 if (!inventory) {
-                    await tx.inventory.create({
+                    await prisma.inventory.create({
                         data: {
                             productId: item.productId,
                             stock: 1000,
                         },
                     });
                 }
-                else if (inventory.stock < item.quantity) {
-                    // Replenish stock to sufficient amount (current quantity + buffer)
-                    await tx.inventory.update({
-                        where: { productId: item.productId },
-                        data: { stock: item.quantity + 1000 }, // add buffer stock
-                    });
-                }
-                await tx.inventory.update({
+                await prisma.inventory.update({
                     where: { productId: item.productId },
                     data: { stock: { decrement: item.quantity } }
                 });
+            } catch (invErr) {
+                console.error("Inventory update warning:", invErr);
             }
-            // 3. Clear Cart if it was a cart-based checkout
-            if (cartId) {
-                await tx.cartItem.deleteMany({
+        }
+        // 3. Clear Cart if it was a cart-based checkout
+        if (cartId) {
+            try {
+                await prisma.cartItem.deleteMany({
                     where: { cartId }
                 });
+            } catch (cartErr) {
+                console.error("Cart clear warning:", cartErr);
             }
-            return await tx.order.findUnique({
-                where: { id: newOrder.id },
-                include: {
-                    items: { include: { product: true } },
-                    address: true,
-                    user: { select: { firstName: true, lastName: true, email: true } }
-                }
-            });
+        }
+        return await prisma.order.findUnique({
+            where: { id: newOrder.id },
+            include: {
+                items: { include: { product: true } },
+                address: true,
+                user: { select: { firstName: true, lastName: true, email: true } }
+            }
         });
-        return order;
     }
     static async getOrders(userId) {
         return await prisma.order.findMany({
