@@ -29,21 +29,28 @@ const ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
     "https://e-commerce-pi-five-15.vercel.app",
-];
+    "https://e-commerce-amber-xi.vercel.app",
+    process.env.FRONTEND_URL,
+    process.env.CORS_ORIGIN,
+].filter(Boolean);
 /* =========================================
    CORS
 ========================================= */
-app.use(cors({
+const corsOptions = {
     origin: (origin, callback) => {
-        // Allow Postman, mobile apps, curl, localhost, and Vercel deployment origins
-        if (!origin ||
+        // Allow Postman, mobile apps, curl, server-to-server requests without origin
+        if (!origin) return callback(null, true);
+
+        if (
             ALLOWED_ORIGINS.includes(origin) ||
             origin.startsWith("http://localhost:") ||
             origin.startsWith("http://127.0.0.1:") ||
-            origin.endsWith(".vercel.app")) {
+            origin.endsWith(".vercel.app") ||
+            origin.includes("vercel.app")
+        ) {
             return callback(null, true);
         }
-        return callback(new Error(`CORS policy: ${origin} is not allowed`));
+        return callback(null, false);
     },
     credentials: true,
     methods: [
@@ -57,8 +64,11 @@ app.use(cors({
     allowedHeaders: [
         "Content-Type",
         "Authorization",
+        "X-Requested-With",
+        "Accept",
     ],
-}));
+};
+app.use(cors(corsOptions));
 /* =========================================
    BODY PARSER
 ========================================= */
