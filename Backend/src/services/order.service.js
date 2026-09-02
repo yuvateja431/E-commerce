@@ -5,6 +5,11 @@ const prisma = new PrismaClient();
 export class OrderService {
     static async createOrder(userId, data) {
         const { shippingAddress, paymentMethod, couponCode, instantOrder } = data;
+        let validPaymentMethod = (paymentMethod || "COD").toString().toUpperCase();
+        const allowedMethods = ["CARD", "UPI", "COD", "STRIPE", "RAZORPAY"];
+        if (!allowedMethods.includes(validPaymentMethod)) {
+            validPaymentMethod = "COD";
+        }
         let itemsToProcess = [];
         let cartId;
         if (instantOrder) {
@@ -106,9 +111,9 @@ export class OrderService {
                     userId,
                     addressId: address.id,
                     totalAmount,
-                    paymentMethod,
+                    paymentMethod: validPaymentMethod,
                     shippingAmount: 0,
-                    couponId,
+                    couponId: couponId || null,
                     status: OrderStatus.PROCESSING,
                     paymentStatus: "PAID",
                     items: {
