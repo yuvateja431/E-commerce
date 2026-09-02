@@ -69,28 +69,30 @@ export class OrderService {
             throw new ApiError(404, "User not found");
         // Check if user already has an address matching this street & postal code
         const userAddresses = await prisma.address.findMany({ where: { userId } });
-        const normStreet = (shippingAddress.street || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-        const normZip = (shippingAddress.zipCode || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-        const normCity = (shippingAddress.city || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        const addr = shippingAddress || {};
+        const normStreet = (addr.street || addr.addressLine1 || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        const normZip = (addr.zipCode || addr.postalCode || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        const normCity = (addr.city || "").toLowerCase().replace(/[^a-z0-9]/g, "");
         let address = userAddresses.find((a) => {
             const aStreet = (a.addressLine1 || "").toLowerCase().replace(/[^a-z0-9]/g, "");
             const aZip = (a.postalCode || "").toLowerCase().replace(/[^a-z0-9]/g, "");
             const aCity = (a.city || "").toLowerCase().replace(/[^a-z0-9]/g, "");
             return ((aStreet === normStreet && aZip === normZip) ||
-                (aStreet.includes(normStreet) && aZip === normZip && aCity === normCity));
+                (normStreet && aStreet.includes(normStreet) && aZip === normZip && aCity === normCity));
         });
         if (!address) {
             const isFirst = userAddresses.length === 0;
+            const fullNameStr = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email || "Customer";
             address = await prisma.address.create({
                 data: {
                     userId,
-                    fullName: user.firstName + " " + user.lastName,
-                    phone: "0000000000",
-                    addressLine1: shippingAddress.street,
-                    city: shippingAddress.city,
-                    state: shippingAddress.state,
-                    postalCode: shippingAddress.zipCode,
-                    country: shippingAddress.country,
+                    fullName: fullNameStr,
+                    phone: addr.phone || "0000000000",
+                    addressLine1: addr.street || addr.addressLine1 || "Standard Address",
+                    city: addr.city || "Default City",
+                    state: addr.state || "Default State",
+                    postalCode: addr.zipCode || addr.postalCode || "000000",
+                    country: addr.country || "India",
                     addressType: "HOME",
                     isDefault: isFirst,
                 },
