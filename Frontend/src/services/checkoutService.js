@@ -1,44 +1,25 @@
 import api from "./api";
-// Base URL for the backend API – adjust if needed (e.g., proxy in Vite)
-const API_BASE = "";
+
 /** ADDRESS ENDPOINTS */
 export const fetchAddresses = () => api.get(`/addresses`);
 export const createAddress = (data) => api.post(`/addresses`, data);
 export const updateAddress = (id, data) => api.put(`/addresses/${id}`, data);
 export const deleteAddress = (id) => api.delete(`/addresses/${id}`);
 export const setDefaultAddress = (id) => api.patch(`/addresses/${id}/default`);
+
 /** ORDER ENDPOINTS */
 export const fetchOrder = async (orderId) => {
-    const response = await fetch(`/api/orders/${orderId}`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("accessToken") || ""}`,
-        },
-    });
-    if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || "Failed to fetch order");
-    }
-    return response.json(); // expected order object
+    const response = await api.get(`/orders/${orderId}`);
+    return response.data;
 };
+
 /** CHECKOUT ENDPOINT */
 export const startCheckout = (payload) => api.post(`/orders/checkout`, payload);
+
 /** PAYMENT GATEWAY ENDPOINTS */
 export const createStripeIntent = (amount, currency = "INR") => api.post(`/payments/stripe-intent`, { amount, currency });
 export const createRazorpayOrder = (amount, currency = "INR") => api.post(`/payments/razorpay-order`, { amount, currency });
 export const verifyPayment = async (payload) => {
-    const response = await fetch(`/api/payments/verify`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("accessToken") || ""}`,
-        },
-        body: JSON.stringify(payload),
-    });
-    if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || "Payment verification failed");
-    }
-    return response.json(); // { status: "PAID" }
+    const response = await api.post(`/payments/verify`, payload);
+    return response.data;
 };
